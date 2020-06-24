@@ -1,0 +1,11 @@
+{
+  "name": "custom-exception",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:general-ice/custom-exception.git",
+  "author": "Vyacheslav Mozdukov <vyacheslav.mozdukov@qauntumsoft.ru>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.9.5"
+  }
+}
