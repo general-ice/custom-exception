@@ -10,7 +10,7 @@ We need to handle other type of exception. Unfortunately by default we don't hav
 # Examples
 Just see a code
 
-**Module for persistent store**
+**Module for persistent store, "./persistent-store.ts"**
 ```
 const DidNotHaveAFieldException = createException<string>()
 const NotEnoughtMemory = createException()
@@ -19,32 +19,49 @@ const saveToStore = (data: SomethingDataInterface) => {
   const necessaryFields = ['field1', 'field2']
   for (const field of necessaryFields) {
     if (!data[field])
-      throw DidHaveAFieldException.new(field)
+      throw DidNotHaveAFieldException.new(field)
   }
 
   if (!Storage.haveFreeMemoryFor(data))
       throw NotEnoughtMemory.new()
 
   ....
+
+   return something
 }
 ```
 
+**Module fo render data, "./render.ts"**
 
 ```
-declarativeHandleError(customE, {
-       [itDoesntWork.type]: () => console.log("it doesnt work"),
-       [itDoesntExist.type]: () => console.log("it doesnt exist"),
-       default: () => console.log('default')
-   });
+const UnknownRenderError = createException<number>()
+
+const render = (): Promise<any> => {
+  try {
+    return RenderEngine.render()
+  } catch (e) {
+    throw UnknownRenderError(e.renderErrorStatus)
+  }
+}
 ```
 
+**Main module, ""./index.ts**
+
 ```
-const itDoesntExist = createError();
-const itDoesntWork = createError();
+import {render} from './render.ts'
+import {saveToStore} from './persistent-store.ts'
 
-const anotherError = createError('strange behaviour')
-
-const realError = new Error()
-
-const customE = itDoesntExist.new() || itDoesntWork.new("hello");
+const makeUpdate = async (update: Update) => {
+  try {
+    await saveToStore(update)
+      .render()
+  } catch (e) {
+    declarativeHandle(e, {
+      [UnknownRenderError.type]: () => console.log("Try to rerender one time yet"),
+      [DidNotHaveAFieldException.type]: (field) => console.log("Data deosn't have the field ", field),
+      [NotEnoughtMemory.type]: () => console.log("Persistent store doesn't have a enought memory for you data, please take out something"),
+      default: (e) => console.log('Please report us for this error, ', e)
+    });
+  }
+}
 ```
